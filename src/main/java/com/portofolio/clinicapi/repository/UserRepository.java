@@ -1,6 +1,6 @@
 package com.portofolio.clinicapi.repository;
 
-import com.portfolio.clinicapi.model.User;
+import com.portofolio.clinicapi.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
