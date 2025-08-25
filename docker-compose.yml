@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  # Service untuk Database PostgreSQL
+  db:
+    image: postgres:14-alpine
+    container_name: clinic-db-compose
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: clinic_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Service untuk Aplikasi Spring Boot kita
+  app:
+    build: .  # Build image dari Dockerfile di direktori ini
+    container_name: clinic-api-compose
+    ports:
+      - "8080:8080"
+    environment:
+      # Override konfigurasi database untuk konek ke service 'db' di atas
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/clinic_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: password
+    depends_on:
+      - db # Pastikan service 'db' start terlebih dahulu sebelum 'app'
+
+volumes:
+  postgres_data:
