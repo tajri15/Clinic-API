@@ -4,12 +4,14 @@ import com.portofolio.clinicapi.dto.DoctorResponse;
 import com.portofolio.clinicapi.dto.ScheduleResponse;
 import com.portofolio.clinicapi.service.DoctorService;
 import com.portofolio.clinicapi.service.ScheduleService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/doctors") // Path diubah menjadi publik
+@RequestMapping("/api/doctors")
 public class DoctorController {
 
     private final DoctorService doctorService;
@@ -20,14 +22,13 @@ public class DoctorController {
         this.scheduleService = scheduleService;
     }
 
-    // Endpoint ini sekarang publik, siapa saja bisa akses
+    // Endpoint ini sekarang menerima parameter Pageable
     @GetMapping
-    public ResponseEntity<List<DoctorResponse>> getAllDoctors() {
-        List<DoctorResponse> doctors = doctorService.getAllDoctors();
+    public ResponseEntity<Page<DoctorResponse>> getAllDoctors(Pageable pageable) {
+        Page<DoctorResponse> doctors = doctorService.getAllDoctors(pageable);
         return ResponseEntity.ok(doctors);
     }
 
-    // Endpoint baru untuk melihat jadwal dokter tertentu, juga publik
     @GetMapping("/{doctorId}/schedules")
     public ResponseEntity<List<ScheduleResponse>> getSchedulesByDoctorId(@PathVariable Long doctorId) {
         List<ScheduleResponse> schedules = scheduleService.getSchedulesByDoctorId(doctorId);

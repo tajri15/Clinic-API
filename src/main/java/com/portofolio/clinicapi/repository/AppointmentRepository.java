@@ -6,9 +6,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
-    // Cek apakah sudah ada appointment untuk dokter di waktu yang sama
     boolean existsByDoctorIdAndAppointmentTime(Long doctorId, LocalDateTime appointmentTime);
-
-    // Cari semua appointment milik seorang pasien
     List<Appointment> findByPatientId(Long patientId);
+
+    // METHOD BARU: Untuk mencari semua janji temu yang terkait dengan seorang dokter
+    List<Appointment> findByDoctorId(Long doctorId);
 }

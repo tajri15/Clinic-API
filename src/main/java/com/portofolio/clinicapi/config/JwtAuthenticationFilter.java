@@ -12,7 +12,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.io.IOException;
 
 @Component
@@ -32,25 +31,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+
+        final String path = request.getServletPath();
+        final String method = request.getMethod();
+
+        // SKIP FILTER UNTUK PUBLIC ENDPOINTS
+        if (path.startsWith("/api/auth/") ||
+                (method.equals("GET") && path.startsWith("/api/doctors"))) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String userEmail;
 
-        // Jika tidak ada header Authorization atau tidak dimulai dengan "Bearer "
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Ekstrak token dari header
         jwt = authHeader.substring(7);
         userEmail = jwtUtil.extractUsername(jwt);
 
-        // Jika email ada dan user belum terautentikasi
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-
-            // Jika token valid, set autentikasi di SecurityContext
             if (jwtUtil.isTokenValid(jwt, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,

@@ -11,6 +11,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.Arrays;
 
 @Configuration
 public class ApplicationConfig {
@@ -21,6 +25,7 @@ public class ApplicationConfig {
         this.userRepository = userRepository;
     }
 
+    // Bean untuk UserDetailsService, AuthenticationProvider, dll. ...
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmail(username)
@@ -43,5 +48,23 @@ public class ApplicationConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    // BEAN INI PALING PENTING UNTUK CORS
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // Izinkan request dari frontend React Anda
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        // Izinkan semua method (GET, POST, dll.)
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        // Izinkan semua header
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        // Izinkan pengiriman kredensial
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration); // Terapkan untuk semua path
+        return source;
     }
 }

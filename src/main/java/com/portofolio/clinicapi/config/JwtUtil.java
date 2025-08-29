@@ -5,20 +5,22 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+// IMPORT BARU YANG DIBUTUHKAN
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List; // IMPORT BARU
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors; // IMPORT BARU
 
 @Component
 public class JwtUtil {
 
-    // Kunci rahasia untuk menandatangani token. HARUS SANGAT RAHASIA dan panjang.
-    // Di aplikasi production, ini harus diambil dari environment variable.
     private static final String SECRET_KEY = "iniadalahkuncirahasiayangSANGATpanjangdanAMANuntukproyekportofoliojavaandadanharusdiganti";
 
     public String extractUsername(String token) {
@@ -30,8 +32,25 @@ public class JwtUtil {
         return claimsResolver.apply(claims);
     }
 
+    // Method ini sekarang memiliki LOGIKA TAMBAHAN
     public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+        // ==================================================================
+        // PENAMBAHAN DIMULAI DI SINI
+        // ==================================================================
+        Map<String, Object> extraClaims = new HashMap<>();
+        // 1. Ambil semua role/authorities dari userDetails
+        List<String> roles = userDetails.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+        // 2. Masukkan daftar role ke dalam token dengan key "roles"
+        extraClaims.put("roles", roles);
+        // ==================================================================
+        // PENAMBAHAN SELESAI
+        // ==================================================================
+
+        // Panggil method generateToken di bawahnya dengan menyertakan claims baru
+        return generateToken(extraClaims, userDetails);
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
@@ -39,7 +58,6 @@ public class JwtUtil {
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                // Token berlaku selama 24 jam
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
